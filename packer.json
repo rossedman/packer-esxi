@@ -1,0 +1,46 @@
+{
+  "builders": [
+    {
+      "vm_name": "esxi60",
+      "vmdk_name": "esxi60-disk0",
+      "type": "vmware-iso",
+      "headless": false,
+      "disk_size": 4096,
+      "guest_os_type": "vmkernel5",
+      "iso_url": "isos/VMware-VMvisor-Installer-201601001-3380124.x86_64.iso",
+      "iso_checksum": "10e8f6efe634a330c3099a93e1cb1ef1d18e17b5",
+      "iso_checksum_type": "sha1",
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "60m",
+      "shutdown_command": "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0",
+      "http_directory": ".",
+      "boot_wait": "5s",
+      "vmx_data": {
+        "memsize": "4096",
+        "numvcpus": "2",
+        "vhv.enable": "TRUE"
+      },
+      "boot_command": [
+        "<enter><wait>O<wait> ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/http/ks.cfg<enter>"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "http/vagrant.pub",
+      "destination": "/etc/ssh/keys-root/authorized_keys"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "builds/{{.BuildName}}-{{.Provider}}-{{user `version`}}.box",
+      "compression_level": 9
+    }
+  ],
+  "variables": {
+    "version": "0.1.0"
+  }
+}
